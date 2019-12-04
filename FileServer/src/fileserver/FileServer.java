@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.sql.*;
+import java.util.regex.Pattern;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 class ClientHandler implements Runnable {
@@ -103,7 +104,7 @@ class ClientHandler implements Runnable {
                             ID = rs.getInt("ID");
                         }
 
-                        path = "Users\\" + ID + "\\home directory";
+                        path = "Users\\" + ID + "\\home directory\\";
                         flag = 1;
                         ///////////////
                         //register code
@@ -143,7 +144,7 @@ class ClientHandler implements Runnable {
                         if (rs.next()) {
                             ID = rs.getInt("ID");
                         }
-                        path = "Users\\" + ID + "\\home directory";
+                        path = "Users\\" + ID + "\\home directory\\";
                         new File(path).mkdirs();
                         flag = 1;
                     }
@@ -158,8 +159,55 @@ class ClientHandler implements Runnable {
                 int size = op.length;
                 ///////////////
                 //make operation
-                if (op.equals("cd")) {
-
+                if (op[0].equals("cd")) {
+                    if (size > 1) {
+                        int count = operation.length() - operation.replace(".", "").length();
+                        int FlagExist = 0;
+                        if (count == 0) {
+                            String FolderName = "";
+                            for (int i = 1; i < size; i++) {
+                                if (i == 1) {
+                                    FolderName = FolderName + op[i];
+                                } else {
+                                    FolderName = FolderName + " " + op[i];
+                                }
+                            }
+                            File f = new File(path + FolderName + "\\");
+                            if (f.exists()) {
+                                FlagExist = 1;
+                            }
+                            if (FlagExist == 1) {
+                                path = path + FolderName + "\\";
+                                dos.writeUTF("Successful operation, Another operation [y/n]?");
+                                dos.flush();
+                            } else if (FlagExist == 0) {
+                                dos.writeUTF("Unsuccessful operation Path doesn't exist, Another operation [y/n]?");
+                                dos.flush();
+                            }
+                        } else if (count > 0) {
+                            String path1 = path.substring(path.indexOf('h'));
+                            String temp = path1;
+                            int count1 = temp.length() - temp.replace("\\", "").length();
+                            String temp2 = path1.replace("\\", ".");
+                            if (count1 - 1 >= count / 2) {
+                                String[] temp1 = temp2.split(Pattern.quote("."));
+                                temp = "";
+                                for(int i = 0;i<count1 - count/2;i++)
+                                {
+                                    temp = temp + temp1[i] + "\\";
+                                }
+                                path = "Users\\" + ID + "\\" + temp;
+                                dos.writeUTF("Successful operation, Another operation [y/n]?");
+                                dos.flush();
+                            } else {
+                                dos.writeUTF("Unsuccessful operation user can't change directory lower than home directory, Another operation [y/n]?");
+                                dos.flush();
+                            }
+                        }
+                    } else {
+                        dos.writeUTF("Unsuccessful operation cd must take one parameter, Another operation [y/n]?");
+                        dos.flush();
+                    }
                 } else if (op[0].equals("ls")) {
                     if (size == 1) {
                         File folder = new File(path);
@@ -177,7 +225,7 @@ class ClientHandler implements Runnable {
                     }
                 } else if (op[0].equals("pwd")) {
                     if (size == 1) {
-                        String path1 = path.substring(path.indexOf('h')) + "\\";
+                        String path1 = path.substring(path.indexOf('h'));
                         dos.writeUTF(path1 + "\nSuccessful operation, Another operation [y/n]?");
                         dos.flush();
                     } else {
