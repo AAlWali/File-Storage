@@ -32,6 +32,6 @@ Using the programming techniques related to socket and thread programming to bui
   b. The user could download from the current working directory at the server side to the local storage system.
   c. Note: System not accept duplicate name for files or directories within the same parent directory.
   
-#Additions
+#  Additions
 1. Login information saved in database(mysql).
 2. Password is hashed using Bycrypt.
