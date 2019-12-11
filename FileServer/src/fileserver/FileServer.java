@@ -10,11 +10,16 @@ package fileserver;
  * @author Abdelrahman Al-Wali
  */
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -24,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.Comparator;
 import java.sql.*;
 import java.util.regex.Pattern;
+import jdk.nashorn.internal.runtime.JSType;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 
 class ClientHandler implements Runnable {
@@ -192,8 +198,7 @@ class ClientHandler implements Runnable {
                             if (count1 - 1 >= count / 2) {
                                 String[] temp1 = temp2.split(Pattern.quote("."));
                                 temp = "";
-                                for(int i = 0;i<count1 - count/2;i++)
-                                {
+                                for (int i = 0; i < count1 - count / 2; i++) {
                                     temp = temp + temp1[i] + "\\";
                                 }
                                 path = "Users\\" + ID + "\\" + temp;
@@ -603,73 +608,138 @@ class ClientHandler implements Runnable {
                         dos.writeUTF("Unsuccessful operation rm must take only one parameter, Another operation [y/n]?");
                         dos.flush();
                     }
-                } else if (op[0].equals("upload")) {
-
                 } else if (op[0].equals("download")) {
                     if (size > 2) {
-                        int FlagExist = 0;
-                        do {
-                            int Last = 0;
-                            FlagExist = 0;
-                            String FileName = "";
-                            String FolderName = "";
-                            for (int i = 1; i < size; i++) {
-                                if (i == 1) {
-                                    FileName = FileName + op[i];
-                                    if (FileName.contains(".")) {
-                                        Last = i;
-                                        break;
-                                    }
-                                } else {
-                                    FileName = FileName + " " + op[i];
-                                    if (FileName.contains(".")) {
-                                        Last = i;
-                                        break;
-                                    }
+                        int FlagExist = 0, FlagExist2 = 0;
+                        int Last = 0;
+                        String FileName = "";
+                        String FolderName = "";
+                        for (int i = 1; i < size; i++) {
+                            if (i == 1) {
+                                FileName = FileName + op[i];
+                                if (FileName.contains(".")) {
+                                    Last = i;
+                                    break;
                                 }
-                            }
-                            File folder = new File(path);
-                            String[] files = folder.list();
-                            for (String file : files) {
-                                if (FileName.equals(file)) {
-                                    FlagExist = 1;
+                            } else {
+                                FileName = FileName + " " + op[i];
+                                if (FileName.contains(".")) {
+                                    Last = i;
                                     break;
                                 }
                             }
-                            for (int i = Last + 1; i < size; i++) {
-                                if (i == Last + 1) {
-                                    FolderName = FolderName + op[i];
-                                } else {
-                                    FolderName = FolderName + " " + op[i];
-                                }
+                        }
+                        File folder = new File(path);
+                        String[] files = folder.list();
+                        for (String file : files) {
+                            if (FileName.equals(file)) {
+                                FlagExist = 1;
+                                break;
                             }
-                            if (FlagExist == 1) {
-                                File myFile = new File(FileName);
-                                byte[] mybytearray = new byte[(int) myFile.length()];
-                                BufferedInputStream bis = new BufferedInputStream(new FileInputStream(myFile));
-                                bis.read(mybytearray, 0, mybytearray.length);
-                                OutputStream os = s.getOutputStream();
-                                os.write(mybytearray, 0, mybytearray.length);
-                                os.flush();
-                                dos.writeUTF("Successful operation, Another operation [y/n]?");
-                                dos.flush();
+                        }
+                        dos.writeInt(FlagExist);
+                        dos.flush();
+                        for (int i = Last + 1; i < size; i++) {
+                            if (i == Last + 1) {
+                                FolderName = FolderName + op[i];
                             } else {
-                                dos.writeUTF("File doesn't exist, Please enter command again with different name: ");
-                                dos.flush();
-                                operation = dis.readUTF();
-                                op = operation.split(" ", 0);
-                                size = op.length;
+                                FolderName = FolderName + " " + op[i];
                             }
+                        }
+                        FlagExist2 = dis.readInt();
+                        File file = new File(path + "\\" + FileName);
+                        long bytes = file.length();
+                        dos.writeLong(bytes);
+                        dos.flush();
+                        if (FlagExist == 1 && FlagExist2 == 1) {
+                            file = new File(path + "\\" + FileName);
+                            FileInputStream fis = new FileInputStream(file);
+                            BufferedInputStream bis = new BufferedInputStream(fis);
+                            long fileLength = file.length();
+                            byte[] b = new byte[JSType.toInt32(fileLength) + 10000];
+                            fis.read(b, 0, b.length);
+                            OutputStream os = s.getOutputStream();
+                            os.write(b, 0, b.length);
+                            os.flush();
+                            dos.writeUTF("Successful operation, Another operation [y/n]?");
+                            dos.flush();
 
-                        } while (FlagExist == 0);
+                        } else if (FlagExist == 0) {
+                            dos.writeUTF("Unsuccessful operation file doesn't exist, Another operation [y/n]?");
+                            dos.flush();
+                        } else if (FlagExist2 == 0) {
+                            dos.writeUTF("Unsuccessful operation folder on client side doesn't exist, Another operation [y/n]?");
+                            dos.flush();
+                        }
                     } else {
 
-                        dos.writeUTF("Unsuccessful operation rnm must take more than two parameter, Another operation [y/n]?");
+                        dos.writeUTF("Unsuccessful operation download must take more than two parameter, Another operation [y/n]?");
                         dos.flush();
                     }
-                } else {
-                    dos.writeUTF("Operation doesn't exist, Another operation [y/n]?");
-                    dos.flush();
+                } else if (op[0].equals("upload")) {
+                    if (size > 1) {
+                        int FlagExist = 0, FlagExist2 = 0;
+                        int Last = 0;
+                        String FileName = "";
+                        String FolderName = "";
+                        for (int i = 1; i < size; i++) {
+                            if (i == 1) {
+                                FileName = FileName + op[i];
+                                if (FileName.contains(".")) {
+                                    Last = i;
+                                    break;
+                                }
+                            } else {
+                                FileName = FileName + " " + op[i];
+                                if (FileName.contains(".")) {
+                                    Last = i;
+                                    break;
+                                }
+                            }
+                        }
+                        File folder = new File(path);
+                        String[] files = folder.list();
+                        for (String file : files) {
+                            if (FileName.equals(file)) {
+                                FlagExist = 1;
+                                break;
+                            }
+                        }
+                        
+                        dos.writeInt(FlagExist);
+                        dos.flush();
+                        for (int i = Last + 1; i < size; i++) {
+                            if (i == Last + 1) {
+                                FolderName = FolderName + op[i];
+                            } else {
+                                FolderName = FolderName + " " + op[i];
+                            }
+                        }
+                        FlagExist2 = dis.readInt();
+                        long Bytes = dis.readLong();
+                        int bytess = JSType.toInt32(Bytes) + 10000;
+                        if (FlagExist == 0 && FlagExist2 == 1) {
+                            byte[] b = new byte[bytess];
+                            InputStream is = s.getInputStream();
+                            FileOutputStream fr = new FileOutputStream(path + "\\" + FileName);
+                            is.read(b, 0, b.length);
+                            fr.write(b, 0, b.length);
+
+                            dos.writeUTF("Successful operation, Another operation [y/n]?");
+                            dos.flush();
+
+                        } else if (FlagExist == 1) {
+                            dos.writeUTF("Unsuccessful operation file does exist on server, Another operation [y/n]?");
+                            dos.flush();
+                        } else if (FlagExist2 == 0) {
+                            dos.writeUTF("Unsuccessful operation folder or file on client side doesn't exist, Another operation [y/n]?");
+                            dos.flush();
+                        }
+                    } else {
+
+                        dos.writeUTF("Unsuccessful operation upload must take more than one parameter, Another operation [y/n]?");
+                        dos.flush();
+                    }
                 }
                 String usr_choice = dis.readUTF();
                 //apply checks
