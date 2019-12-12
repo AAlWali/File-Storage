@@ -35,3 +35,6 @@ Using the programming techniques related to socket and thread programming to bui
 #  Additions
 1. Login information saved in database(mysql).
 2. Password is hashed using Bycrypt.
+
+# Video
+https://youtu.be/ZnvZsqGE2GQ
