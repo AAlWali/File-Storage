@@ -28,7 +28,7 @@ CREATE TABLE `login` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`ID`),
   UNIQUE KEY `ID_UNIQUE` (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -37,7 +37,7 @@ CREATE TABLE `login` (
 
 LOCK TABLES `login` WRITE;
 /*!40000 ALTER TABLE `login` DISABLE KEYS */;
-INSERT INTO `login` VALUES ('wali@gmail.com','$2a$12$7EsoHkqITWifaEfdka9CiObXwHgLxVYtQQMzFaCwV5wRhoajoMYdu',1);
+INSERT INTO `login` VALUES ('wali@gmail.com','$2a$12$7EsoHkqITWifaEfdka9CiObXwHgLxVYtQQMzFaCwV5wRhoajoMYdu',1),('wali1@gmail.com','$2a$12$do1NopzKXanXcNaACWJdfO3m3CZzE2/qE4e/VNRsq/XmH4ju47ox.',3),('hatem@gmail.com','$2a$12$qPsTBZBsvOvLo9fRxyBN1eeAf3nWqCbj9dUVHRSho6BH.xqbBoy3u',4);
 /*!40000 ALTER TABLE `login` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -50,4 +50,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-12-11 15:25:35
+-- Dump completed on 2019-12-12 22:07:08
